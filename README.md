@@ -4,10 +4,8 @@ SpecLoop is a lightweight web application inspired by [Takeoff School's](https:/
 
 > Fun fact: This first half of this project was built using just o1 and the prompts
 
-<div style="display: flex; gap: 16px; margin: 20px 0;">
-  <img src="https://github.com/user-attachments/assets/bdcad872-7c35-47a1-a608-1ecd9e8f6a7a" alt="SpecLoop Dashboard" style="border-radius: 8px; max-width: 48%;">
-  <img src="https://github.com/user-attachments/assets/12172deb-ddf5-4791-a76c-b20b239404dd" alt="SpecLoop Project View" style="border-radius: 8px; max-width: 48%;">
-</div>
+![CleanShot 2025-03-18 at 14 01 28](https://github.com/user-attachments/assets/c8005106-44a9-4463-95ee-ada849a4e07d)
+
 
 ## About SpecLoop
 
