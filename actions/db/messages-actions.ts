@@ -32,6 +32,7 @@ import { eq, and, desc } from "drizzle-orm"
 import { ActionState } from "@/types"
 import { extractRequestFromChat } from "@/lib/utils/index"
 import { updateProjectAction } from "./projects-actions"
+import { respondToUserChatMessageAction } from "../ai/ai-actions"
 
 /**
  * Creates a new message for a given chat session.
@@ -120,11 +121,25 @@ export async function updateRequestFromTextChats(
       }
     }
 
-    const idea = extractRequestFromChat(lastAiMessage.content)
+    let idea = extractRequestFromChat(lastAiMessage.content)
     if (!idea) {
-      console.log(lastAiMessage.content)
-      console.log(extractRequestFromChat(lastAiMessage.content))
-      throw new Error("No idea found in chat")
+      console.log(
+        "No idea found in chat, asking AI to generate project request"
+      )
+      const aiRes = await respondToUserChatMessageAction({
+        chatId,
+        userContent: `Please output the up to date project request.`
+      })
+      if (!aiRes.isSuccess) {
+        throw new Error("Failed to generate project request")
+      }
+      const aiIdea = extractRequestFromChat(
+        aiRes.data?.assistantMessage.content
+      )
+      if (!aiIdea) {
+        throw new Error("Failed to generate project request")
+      }
+      idea = aiIdea
     }
 
     const updateRes = await updateProjectAction(chatId, {

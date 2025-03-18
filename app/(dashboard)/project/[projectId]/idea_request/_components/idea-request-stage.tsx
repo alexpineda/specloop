@@ -105,7 +105,7 @@ export default function IdeaRequestStage({
 
     toast({
       title: "Success",
-      description: "Changes saved successfully!"
+      description: "Changes saved and chat updated!"
     })
     setIsSaving(false)
     setIsEditing(false)

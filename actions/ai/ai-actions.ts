@@ -50,10 +50,8 @@ export async function respondToUserChatMessageAction(
     }
     await db.insert(messagesTable).values(userInsert)
 
-    // 2. Retrieve recent conversation for context (last 5 messages)
     const recentMessages = await db.query.messages.findMany({
       where: eq(messagesTable.chatId, input.chatId),
-      limit: 5,
       orderBy: (table, { desc }) => [desc(table.createdAt)]
     })
     const conversationInChronOrder = recentMessages.reverse()
