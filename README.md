@@ -2,7 +2,7 @@
 
 SpecLoop is a lightweight web application inspired by [Takeoff School's](https://www.jointakeoff.com/) prompts, designed to help developers work more effectively with O1 Pro. It provides a streamlined interface for creating, managing, and working with project specifications.
 
-> Fun fact: This first half of this project was built using the prompts
+> Fun fact: This first half of this project was built using just o1 and the prompts
 
 <div style="display: flex; gap: 16px; margin: 20px 0;">
   <img src="https://github.com/user-attachments/assets/bdcad872-7c35-47a1-a608-1ecd9e8f6a7a" alt="SpecLoop Dashboard" style="border-radius: 8px; max-width: 48%;">
@@ -72,9 +72,6 @@ Required environment variables:
 ```
 # Database Configuration
 DATABASE_URL="file:./specloop.db"
-
-# API Keys
-OPENAI_API_KEY=your_openai_api_key
 ```
 
 ### 4. Set up the database
@@ -135,6 +132,8 @@ npm run db:studio
 ### Environment Variables
 
 The application uses environment variables for configuration. See `.env.example` for required variables.
+
+If you don't want to store your OPENAI api key in the sqlite db (via the config page), either have it available in your environment or set it in .env OPENAI_API_KEY
 
 ## License
 
