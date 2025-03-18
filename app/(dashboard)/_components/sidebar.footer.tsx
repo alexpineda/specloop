@@ -1,7 +1,12 @@
 "use client"
 import { FileText, Settings } from "lucide-react"
 
-import { SidebarMenu, SidebarMenuButton } from "@/components/ui/sidebar"
+import {
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuButton
+} from "@/components/ui/sidebar"
 
 import React from "react"
 import { cookies } from "next/headers"
@@ -24,7 +29,7 @@ export default function DashboardSidebarFooter() {
   return (
     <SidebarFooter className="text-muted-foreground text-xs">
       <SidebarMenu>
-        <SidebarMenuItem>
+        {/* <SidebarMenuItem>
           <SidebarMenuButton asChild className="w-full">
             <Link
               href={`/project/${params.projectId}/documents`}
@@ -34,11 +39,11 @@ export default function DashboardSidebarFooter() {
               <span>Additional Documents</span>
             </Link>
           </SidebarMenuButton>
-        </SidebarMenuItem>
-        <SidebarMenuItem className="border-t p-2">
+        </SidebarMenuItem> */}
+        <SidebarMenuItem className="border-t pt-4">
           <SidebarMenuButton asChild className="w-full">
             <Link href="/onboarding" className="flex items-center gap-2">
-              <Settings className="size-4" />
+              <Settings className="size-6" />
               <span>Settings</span>
             </Link>
           </SidebarMenuButton>

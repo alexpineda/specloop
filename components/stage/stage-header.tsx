@@ -36,7 +36,7 @@ export const StageHeader = ({
         </div>
         {nextButton}
       </span>
-      {children}
+      <>{children}</>
     </div>
   )
 }
