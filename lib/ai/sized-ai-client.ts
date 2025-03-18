@@ -19,7 +19,7 @@ export const getSizedAiClient = async (
 ) => {
   const settings = await _getSettings(_settings)
   return [
-    createProvider(settings.llm[size].provider as ValidProvider),
+    await createProvider(settings.llm[size].provider as ValidProvider),
     settings.llm[size].model
   ] as const
 }

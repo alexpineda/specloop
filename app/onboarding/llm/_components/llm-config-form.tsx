@@ -35,6 +35,7 @@ export default function LlmConfigForm({ initialSettings }: LlmConfigFormProps) {
     initialSettings || defaultSettings
   )
   const [isSaving, setIsSaving] = useState(false)
+  const [showApiKey, setShowApiKey] = useState(false)
 
   const handleModelChange = (size: keyof Settings["llm"], model: string) => {
     if (size === "small" || size === "medium" || size === "large") {
@@ -51,11 +52,22 @@ export default function LlmConfigForm({ initialSettings }: LlmConfigFormProps) {
     }
   }
 
+  const handleApiKeyChange = (value: string) => {
+    setSettings(prev => ({
+      ...prev,
+      keys: {
+        ...prev.keys,
+        openai_key: value
+      }
+    }))
+  }
+
   const handleSave = async () => {
     setIsSaving(true)
     try {
       const result = await updateSettingsAction({
-        llm: settings.llm
+        llm: settings.llm,
+        keys: settings.keys
       })
 
       if (result.isSuccess) {
@@ -88,6 +100,54 @@ export default function LlmConfigForm({ initialSettings }: LlmConfigFormProps) {
         <CardTitle>LLM Configuration</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">API Key</h3>
+          <p className="text-muted-foreground text-sm">
+            Enter your OpenAI API key to use the LLM features. Your key is
+            stored securely and never shared.
+          </p>
+
+          <div className="space-y-2">
+            <Label htmlFor="api-key" className="text-sm">
+              OpenAI API Key
+            </Label>
+            <div className="relative">
+              <Input
+                id="api-key"
+                type={showApiKey ? "text" : "password"}
+                value={settings.keys?.openai_key || ""}
+                onChange={e => handleApiKeyChange(e.target.value)}
+                placeholder="sk-... or empty to read from environment"
+                className="pr-10"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-0 top-0 h-full"
+                onClick={() => setShowApiKey(!showApiKey)}
+              >
+                {showApiKey ? (
+                  <EyeOffIcon className="h-4 w-4" />
+                ) : (
+                  <EyeIcon className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+            <p className="text-muted-foreground text-xs">
+              Get your API key from{" "}
+              <a
+                href="https://platform.openai.com/account/api-keys"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline"
+              >
+                OpenAI's website
+              </a>
+            </p>
+          </div>
+        </div>
+
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Model Selection</h3>
           <p className="text-muted-foreground text-sm">

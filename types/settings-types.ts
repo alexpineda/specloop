@@ -23,11 +23,6 @@ const PromptVarsSchema = z.object({
   code: z.string()
 })
 
-const PromptExtractionSchema = z.object({
-  ideaRequest: z.string(),
-  planStep: z.string()
-})
-
 const LlmSchema = z.object({
   small: z.object({
     provider: z.string(),
@@ -46,7 +41,12 @@ const LlmSchema = z.object({
 export const SettingsSchema = z.object({
   prompts: PromptSchema,
   promptVars: PromptVarsSchema,
-  llm: LlmSchema
+  llm: LlmSchema,
+  keys: z
+    .object({
+      openai_key: z.string().optional()
+    })
+    .optional()
 })
 
 export type Settings = z.infer<typeof SettingsSchema>
@@ -83,5 +83,8 @@ export const defaultSettings: Settings = {
       provider: "openai",
       model: "gpt-o3-mini"
     }
+  },
+  keys: {
+    openai_key: ""
   }
 }

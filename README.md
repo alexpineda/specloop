@@ -133,7 +133,7 @@ npm run db:studio
 
 The application uses environment variables for configuration. See `.env.example` for required variables.
 
-If you don't want to store your OPENAI api key in the sqlite db (via the config page), either have it available in your environment or set it in .env OPENAI_API_KEY
+If you don't want to store your OPENAI api key in the sqlite db (via the config page), either have it available in your environment or set it in `.env.local` OPENAI_API_KEY
 
 ## License
 
