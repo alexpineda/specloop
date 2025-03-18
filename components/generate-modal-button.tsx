@@ -52,7 +52,7 @@ export function GenerateModalButton({
   const handleViewPrompt = async () => {
     const result = await getPreparedPromptAction(projectId, promptType)
     if (result.isSuccess && result.data) {
-      setPromptContent(result.data.prompt + append)
+      setPromptContent(result.data.prompt + (append || ""))
       setShowPrompt(true)
     } else {
       console.error(result.message)
