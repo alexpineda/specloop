@@ -7,13 +7,13 @@ import { getProjectByIdAction } from "@/actions/db/projects-actions"
 import CodegenStage from "./_components/codegen-stage"
 
 interface CodegenPageProps {
-  params: {
+  params: Promise<{
     projectId: string
-  }
+  }>
 }
 
 export default async function CodegenPage({ params }: CodegenPageProps) {
-  const projectId = params.projectId
+  const projectId = (await params).projectId
 
   return (
     <Suspense fallback={<CodegenSkeleton />}>

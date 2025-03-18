@@ -14,7 +14,6 @@ import {
   markStepCompleteAction,
   updateExistingCodeAction
 } from "@/actions/db/projects-actions"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Editor from "@monaco-editor/react"
 import {
   Copy,
@@ -33,6 +32,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator
+} from "@/components/ui/breadcrumb"
+import { cn } from "@/lib/utils"
 
 /**
  * Custom hook for debouncing values
@@ -72,9 +80,9 @@ export default function CodegenStage({
   const [isSaving, setIsSaving] = useState(false)
   const [isPasting, setIsPasting] = useState(false)
   const [localExistingCode, setLocalExistingCode] = useState(existingCode)
-  const [activeTab, setActiveTab] = useState<"generated" | "existing">(
-    "generated"
-  )
+  const [activeView, setActiveView] = useState<
+    "codebase" | "step-details" | "mark-step-complete"
+  >("codebase")
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(true)
   const [currentStepDetails, setCurrentStepDetails] = useState<string>("")
   const { theme } = useTheme()
@@ -178,28 +186,6 @@ export default function CodegenStage({
   }
 
   /**
-   * handleCopyTask
-   * Copies the current task details to the user's clipboard.
-   */
-  function handleCopyTask() {
-    const currentTask = parsedTasks[selectedTaskIndex]
-    if (!currentTask) return
-
-    try {
-      const taskText = `# ${currentTask.title}\n\n${currentStepDetails || ""}`
-      navigator.clipboard.writeText(taskText).then(() => {
-        toast({ title: "Copied", description: "Task details copied!" })
-      })
-    } catch (error: any) {
-      toast({
-        title: "Clipboard Error",
-        description: error.message || "Failed to copy task details",
-        variant: "destructive"
-      })
-    }
-  }
-
-  /**
    * handleMarkComplete
    * Marks the current step as complete in the database
    */
@@ -239,7 +225,7 @@ export default function CodegenStage({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setActiveTab("existing")}
+            onClick={() => setActiveView("codebase")}
           >
             <RefreshCw className="mr-2 size-4" />
             Update
@@ -326,109 +312,140 @@ export default function CodegenStage({
     }
   }
 
+  const headerButton = () => {
+    if (activeView === "codebase") {
+      return (
+        <Button className="gap-1" onClick={() => setActiveView("step-details")}>
+          <span className="flex items-center gap-1">
+            <span>Review Step &amp; Generate Code</span>
+          </span>
+        </Button>
+      )
+    }
+    return (
+      <Button
+        onClick={handleMarkComplete}
+        disabled={
+          isMarkingComplete || parsedTasks[selectedTaskIndex]?.completed
+        }
+      >
+        {isMarkingComplete
+          ? "Marking Complete..."
+          : parsedTasks[selectedTaskIndex]?.completed
+            ? "Step Completed"
+            : "Next: Mark this step as complete"}
+      </Button>
+    )
+  }
+
   return (
     <div className="mx-auto flex h-[calc(100vh-120px)] w-full flex-col p-4">
       <StageHeader
         title="Code Generation"
         description="Generate and manage code for your project."
         icon={Cpu}
-        nextButton={
-          <Button
-            onClick={handleMarkComplete}
-            disabled={
-              isMarkingComplete || parsedTasks[selectedTaskIndex]?.completed
-            }
-          >
-            {isMarkingComplete
-              ? "Marking Complete..."
-              : parsedTasks[selectedTaskIndex]?.completed
-                ? "Step Completed"
-                : "Next: Mark this step as complete"}
-          </Button>
-        }
+        nextButton={headerButton()}
       >
-        <div className="flex gap-2">
-          <GenerateModalButton
-            projectId={projectId}
-            label="Generate code for this step"
-            promptType="codegen"
-            append={`\n\nIf you're not sure what step to generate code for, here's the step details: \n\n${currentStepTitle}\n\n${currentStepDetails}`}
-          />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleCopyTask}
-            className="flex items-center gap-1"
-          >
-            <Copy className="size-4" />
-            Copy Task
-          </Button>
+        <div className="space-y-4">
+          <div>
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem
+                  onClick={() => setActiveView("codebase")}
+                  className={cn(
+                    "cursor-pointer",
+                    activeView === "codebase" && "font-bold"
+                  )}
+                >
+                  Review / update codebase
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem
+                  onClick={() => setActiveView("step-details")}
+                  className={cn(
+                    "cursor-pointer",
+                    activeView === "step-details" && "font-bold"
+                  )}
+                >
+                  Review Step &amp; Generate Code:{" "}
+                  {parsedTasks[selectedTaskIndex]?.title}
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          </div>
         </div>
       </StageHeader>
 
       {/* Show the snippet if we have one */}
-      {(lastGeneratedSnippet || existingCode) && (
-        <div className="mt-6 flex flex-1 flex-col overflow-hidden border">
-          <div className="flex items-center justify-between border-b p-4">
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-semibold">
-                  {selectedTaskIndex + 1}.{" "}
-                  {parsedTasks[selectedTaskIndex]?.title}
-                </h2>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-8 gap-1">
-                      <span>
-                        Step {selectedTaskIndex + 1} of {parsedTasks.length}
-                      </span>
-                      <ChevronDown className="size-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="start"
-                    className="max-h-[300px] w-[220px] overflow-y-auto"
-                  >
-                    {parsedTasks.map((task, index) => (
-                      <DropdownMenuItem
-                        key={index}
-                        onClick={() => setSelectedTaskIndex(index)}
-                        className="flex items-center justify-between"
-                      >
-                        <span className="truncate">
-                          Step {task.id}: {task.title}
-                        </span>
-                        {task.completed && (
-                          <Check className="ml-2 size-4 text-green-500" />
-                        )}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-              {parsedTasks[selectedTaskIndex] && (
-                <p className="text-muted-foreground mt-1 text-sm">
-                  {parsedTasks[selectedTaskIndex].title}
-                </p>
-              )}
-            </div>
-          </div>
 
-          <Tabs
-            value={activeTab}
-            onValueChange={value =>
-              setActiveTab(value as "generated" | "existing")
-            }
-            className="flex h-full flex-1 flex-col"
-          >
-            <TabsList>
-              <TabsTrigger value="existing">Your Code Base</TabsTrigger>
-              <TabsTrigger value="generated">Step Details</TabsTrigger>
-            </TabsList>
-            <TabsContent
-              value="generated"
-              className="relative h-full flex-1 overflow-auto p-4"
-            >
+      {activeView === "step-details" && (
+        <>
+          <p className="max-w-prose rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
+            Generate the code for this step using o1 pro. Then mark the step as
+            complete.
+          </p>
+          <div className="mt-6 flex flex-1 flex-col overflow-hidden border">
+            <div className="flex items-center justify-between border-b p-4">
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-lg font-semibold">
+                    {selectedTaskIndex + 1}.{" "}
+                    {parsedTasks[selectedTaskIndex]?.title}
+                  </h2>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="h-8 gap-1">
+                        <span className="flex items-center gap-1">
+                          <span>
+                            Step {selectedTaskIndex + 1} of {parsedTasks.length}
+                          </span>
+                          <span>
+                            {parsedTasks[selectedTaskIndex]?.completed && (
+                              <Check className="ml-2 size-4 text-green-500" />
+                            )}
+                          </span>
+                        </span>
+                        <ChevronDown className="size-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="start"
+                      className="max-h-[300px] w-[220px] overflow-y-auto"
+                    >
+                      {parsedTasks.map((task, index) => (
+                        <DropdownMenuItem
+                          key={index}
+                          onClick={() => setSelectedTaskIndex(index)}
+                          className="flex items-center justify-between"
+                        >
+                          <span className="truncate">
+                            Step {task.id}: {task.title}
+                          </span>
+                          {task.completed && (
+                            <Check className="ml-2 size-4 text-green-500" />
+                          )}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+                {parsedTasks[selectedTaskIndex] && (
+                  <p className="text-muted-foreground mt-1 text-sm">
+                    {parsedTasks[selectedTaskIndex].title}
+                  </p>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <GenerateModalButton
+                  projectId={projectId}
+                  label="Generate code for this step"
+                  promptType="codegen"
+                  append={`\n\nIf you're not sure what step to generate code for, here's the step details: \n\n${currentStepTitle}\n\n${currentStepDetails}`}
+                />
+              </div>
+            </div>
+
+            <div className="relative h-full flex-1 overflow-auto p-4">
               <div className="mb-4 flex gap-2">
                 {currentStepDetails && (
                   <div className="w-full border-b px-4 py-2">
@@ -451,57 +468,62 @@ export default function CodegenStage({
                 )}
                 <ReactMarkdown>{lastGeneratedSnippet}</ReactMarkdown>
               </div>
-            </TabsContent>
-            <TabsContent
-              value="existing"
-              className="relative h-full min-h-[500px] flex-1 p-0"
-            >
-              <div className="mb-4 flex gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="flex items-center gap-1 opacity-50 hover:opacity-100"
-                  onClick={handlePasteCode}
-                  disabled={isPasting}
-                >
-                  <Clipboard className="size-4" />
-                  {isPasting ? "Pasting..." : "Paste"}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="opacity-50 hover:opacity-100"
-                  onClick={handleSaveExistingCode}
-                  disabled={isSaving}
-                >
-                  {isSaving ? "Saving..." : "Save"}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={`opacity-50 hover:opacity-100 ${autoSaveEnabled ? "text-green-500" : ""}`}
-                  onClick={() => setAutoSaveEnabled(!autoSaveEnabled)}
-                >
-                  {autoSaveEnabled ? "Auto-save: On" : "Auto-save: Off"}
-                </Button>
-              </div>
+            </div>
+          </div>
+        </>
+      )}
+      {activeView === "codebase" && (
+        <>
+          <p className="max-w-prose rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
+            Remember to update the codebase from the previous step. If this is
+            step 1, no action is necessary.
+          </p>
+          <div className="relative h-full min-h-[500px] flex-1 p-4">
+            <div className="mb-4 flex gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="flex items-center gap-1 opacity-50 hover:opacity-100"
+                onClick={handlePasteCode}
+                disabled={isPasting}
+              >
+                <Clipboard className="size-4" />
+                {isPasting ? "Pasting..." : "Paste from clipboard"}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="opacity-50 hover:opacity-100"
+                onClick={handleSaveExistingCode}
+                disabled={isSaving}
+              >
+                {isSaving ? "Saving..." : "Save"}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={`opacity-50 hover:opacity-100 ${autoSaveEnabled ? "text-green-500" : ""}`}
+                onClick={() => setAutoSaveEnabled(!autoSaveEnabled)}
+              >
+                {autoSaveEnabled ? "Auto-save: On" : "Auto-save: Off"}
+              </Button>
+            </div>
 
-              <Editor
-                height="100%"
-                defaultLanguage="typescript"
-                value={localExistingCode}
-                theme={theme === "dark" ? "vs-dark" : "light"}
-                onChange={value => setLocalExistingCode(value || "")}
-                options={{
-                  minimap: { enabled: true },
-                  scrollBeyondLastLine: false,
-                  fontSize: 14,
-                  wordWrap: "on"
-                }}
-              />
-            </TabsContent>
-          </Tabs>
-        </div>
+            <Editor
+              height="100%"
+              defaultLanguage="typescript"
+              value={localExistingCode}
+              theme={theme === "dark" ? "vs-dark" : "light"}
+              onChange={value => setLocalExistingCode(value || "")}
+              options={{
+                minimap: { enabled: true },
+                scrollBeyondLastLine: false,
+                fontSize: 14,
+                wordWrap: "on"
+              }}
+            />
+          </div>
+        </>
       )}
     </div>
   )
