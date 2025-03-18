@@ -1,0 +1,1 @@
+ALTER TABLE `projects` ADD `additional_documents` text;
